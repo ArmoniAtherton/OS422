@@ -44,22 +44,41 @@ void *prod_worker(void *arg)
 {
   int i = 0;
   for (i = 0; i < LOOPS; i++) {
+    pthread_mutex_lock(&lock);
+    printf("In prod - WORKER: 1\n");
+    //This will generate the matrix
+     Matrix * bigmatrix[MAX];
+    *(bigmatrix + 0) = GenMatrixRandom();
+    *(bigmatrix + 1) = GenMatrixRandom();
+    *(bigmatrix + 2) = MatrixMultiply(*(bigmatrix + 0), *(bigmatrix + 1));
+    //This will make sure that the matrix sizes were the multiplied.
+    while (*(bigmatrix + 2) == NULL) {
+        *(bigmatrix + 1) = GenMatrixRandom();
+        *(bigmatrix + 2) = MatrixMultiply(*(bigmatrix + 0), *(bigmatrix + 1));
+    }
+    printf("HELLOOOOOOO\n");
+    // signal parent
+    // ready=1;
+    // printf("THIS IS READY: %d", ready);
+    // pthread_cond_signal(&fill);
+    printf("PROD - THIS IS READY: %d\n", ready);
+    while (ready == 1) {//SHOULD BE READY == MAX(PRODUCERS)
+        pthread_cond_wait(&empty, &lock); 
+    }
+    printf("In prod - WORKER: 2\n");
+    ready = 1;
+    pthread_cond_signal(&fill); 
+    pthread_mutex_unlock(&lock);
 
-    // Pthread_mutex_lock(&lock);
-   
-   
-    // // signal parent
-    // // ready=1;
-    // // pthread_cond_signal(&cond);
-    // while (ready == 1) {//SHOULD BE READY == MAX(PRODUCERS)
-    //     Pthread_cond_wait(&empty, &lock); 
-    // }
-    // //NEED TO GET MATRIX AND PRINT IT OUT.
-    // ready = 0;
-    // Pthread_cond_signal(&fill); 
-    // Pthread_mutex_unlock(&lock); 
-    //NEED TO FREE MATRIX
-    
+    // DisplayMatrix(*(bigmatrix + 0), stdout);
+    // printf("\n");
+    // DisplayMatrix(*(bigmatrix + 1), stdout);
+    // printf("\n");
+    // DisplayMatrix(*(bigmatrix + 2), stdout);
+
+    //This frees the matricies 
+    FreeMatrix(*(bigmatrix + 0));
+    FreeMatrix(*(bigmatrix + 1));
     }
     return NULL;
 }
@@ -78,17 +97,26 @@ void *prod_worker(void *arg)
 // Matrix CONSUMER worker thread
 void *cons_worker(void *arg)
 {
-  // int i = 0;
-  // for (i = 0; i < LOOPS; i++) {
-  //   Pthread_mutex_lock(&lock);
-  //   while (ready == 0) {
-  //       Pthread_cond_wait(&fill, &lock); 
-  //   }
-  //   // int tmp = get(); 
-  //   Pthread_cond_signal(&empty); 
-  //   Pthread_mutex_unlock(&lock); 
+  int i = 0;
+  for (i = 0; i < LOOPS; i++) {
+    pthread_mutex_lock(&lock);
+    printf("In cons - WORKER: 1\n");
+    printf("CONS - THIS IS READY: %d\n", ready);
+    while (ready == 0) {
+        pthread_cond_wait(&fill, &lock); 
+    }
+    printf("In cons - WORKER: 2\n");
+    //Print the matrix
+    DisplayMatrix(*(bigmatrix + 0), stdout);
+    DisplayMatrix(*(bigmatrix + 1), stdout);
+    DisplayMatrix(*(bigmatrix + 2), stdout);
+    //  Matrix * n = MatrixMultiply(*(bigmatrix + 0), *(bigmatrix + 1));
+    // DisplayMatrix(n, stdout);
+    ready = 0;
+    pthread_cond_signal(&empty); 
+    pthread_mutex_unlock(&lock); 
+  }
   return NULL;
-  // }
 }
 
 

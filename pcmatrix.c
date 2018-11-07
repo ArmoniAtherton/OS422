@@ -96,17 +96,15 @@ int main (int argc, char * argv[])
   int constot = 0;
   int consmul = 0;
 
-  // pthread_create(&pr, NULL, prod_worker, NULL);
-  // pthread_create(&co, NULL, cons_worker, NULL);
+  pthread_create(&pr, NULL, prod_worker, NULL);
+  pthread_create(&co, NULL, cons_worker, NULL);
 
-  // cons_worker(NULL);
-
-  // pthread_join(pr, NULL);
-  // pthread_join(co, NULL);
+  pthread_join(pr, NULL);
+  pthread_join(co, NULL);
 
   /** THIS WILL GEN MATRIX AND MULTIPLY **/
   // Matrix * bigmatrix[MAX];
-  // *bigmatrix = AllocMatrix(ROW, COL);
+  // // *bigmatrix = AllocMatrix(ROW, COL);
   // *(bigmatrix + 0) = GenMatrixRandom();
   // *(bigmatrix + 1) = GenMatrixRandom();
   // // MatrixMultiply(*(bigmatrix + 0), *(bigmatrix + 1));
@@ -116,9 +114,10 @@ int main (int argc, char * argv[])
   //     n = MatrixMultiply(*(bigmatrix + 0), *(bigmatrix + 1));
   // }
   // DisplayMatrix(*(bigmatrix + 0), stdout);
+  // printf("\n");
   // DisplayMatrix(*(bigmatrix + 1), stdout);
+  // printf("\n");
   // DisplayMatrix(n, stdout);
-
 
 
   // consume ProdConsStats from producer and consumer threads
