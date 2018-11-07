@@ -17,7 +17,7 @@
 #define MAX 200
 
 // Number of matrices to produce/consume
-#define LOOPS 1200
+#define LOOPS 10
 
 
 
