@@ -40,11 +40,6 @@ int put(Matrix * value)
   count++;
   return NULL;
 }
-// 6 void put(int value) {
-// 7   buffer[fill_ptr] = value;
-// 8   fill_ptr = (fill_ptr + 1) % MAX;
-// 9   count++;
-// 10 }
 
 Matrix * get() 
 {
@@ -54,13 +49,6 @@ Matrix * get()
   return tmp;
 }
 
-// 12 int get() {
-// 13  int tmp = buffer[use_ptr];
-// 14  use_ptr = (use_ptr + 1) % MAX;
-// 15  count--;
-// 16  return tmp;
-// 17 }
-// Matrix PRODUCER worker thread
 void *prod_worker(void *arg)
 {
   int i = 0;
