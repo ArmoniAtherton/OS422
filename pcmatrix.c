@@ -39,10 +39,6 @@
 #include "prodcons.h"
 #include "pcmatrix.h"
 
-// pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-// pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-// int ready = 0;
-
 int main (int argc, char * argv[])
 {
   time_t t;
@@ -102,6 +98,38 @@ int main (int argc, char * argv[])
   pthread_join(pr, NULL);
   pthread_join(co, NULL);
 
+  // consume ProdConsStats from producer and consumer threads
+  // add up total matrix stats in prs, cos, prodtot, constot, consmul 
+
+  printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
+  printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
+  return 0;
+}
+
+//  // initialize counters_t janky way
+//   counters_t * c = (counters_t*) malloc(sizeof(counters_t));
+//   counter_t *count = (counter_t *) malloc (sizeof(counter_t));
+//   init_cnt(count);
+//   c->prod = count;
+
+//   // less janky way
+//   counters_t * c2 = (counters_t*) malloc(sizeof(counters_t));
+//   c2->cons = (counter_t *) malloc (sizeof(counter_t));
+//   c2->prod = (counter_t *) malloc (sizeof(counter_t));
+//   init_cnt(c2->cons);
+//   init_cnt(c2->prod);
+
+//   increment_cnt(c2->cons);
+
+//   printf("***** %d %d *****\n", get_cnt(c2->cons), get_cnt(c2->prod));
+
+
+  // counter_t * count = (counter_t *) malloc(sizeof(counter_t));
+  // init_cnt(count);
+  // increment_cnt(count);
+  // printf("*********%d!!!!!!\n", get_cnt(count));
+
+
   /** THIS WILL GEN MATRIX AND MULTIPLY **/
   // Matrix * bigmatrix[MAX];
   // // *bigmatrix = AllocMatrix(ROW, COL);
@@ -118,12 +146,3 @@ int main (int argc, char * argv[])
   // DisplayMatrix(*(bigmatrix + 1), stdout);
   // printf("\n");
   // DisplayMatrix(n, stdout);
-
-
-  // consume ProdConsStats from producer and consumer threads
-  // add up total matrix stats in prs, cos, prodtot, constot, consmul 
-
-  printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
-  printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
-  return 0;
-}
