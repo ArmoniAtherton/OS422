@@ -52,30 +52,30 @@ int main (int argc, char * argv[])
   //
   // DELETE THIS CODE ON ASSIGNMENT 2 SUBMISSION
   // ----------------------------------------------------------
-  printf("MATRIX MULTIPLICATION DEMO:\n\n");
-  Matrix *m1, *m2, *m3;
-  for (int i=0;i<12;i++)
-  {
-    m1 = GenMatrixRandom();
-    m2 = GenMatrixRandom();
-    m3 = MatrixMultiply(m1, m2);
-    if (m3 != NULL)
-    {
-      DisplayMatrix(m1,stdout);
-      printf("    X\n");
-      DisplayMatrix(m2,stdout);
-      printf("    =\n");
-      DisplayMatrix(m3,stdout);
-      printf("\n");
-      FreeMatrix(m3);
-      FreeMatrix(m2);
-      FreeMatrix(m1);
-      m1=NULL;
-      m2=NULL;
-      m3=NULL;
-    }
-  }
-  return 0;
+  // printf("MATRIX MULTIPLICATION DEMO:\n\n");
+  // Matrix *m1, *m2, *m3;
+  // for (int i=0;i<12;i++)
+  // {
+  //   m1 = GenMatrixRandom();
+  //   m2 = GenMatrixRandom();
+  //   m3 = MatrixMultiply(m1, m2);
+  //   if (m3 != NULL)
+  //   {
+  //     DisplayMatrix(m1,stdout);
+  //     printf("    X\n");
+  //     DisplayMatrix(m2,stdout);
+  //     printf("    =\n");
+  //     DisplayMatrix(m3,stdout);
+  //     printf("\n");
+  //     FreeMatrix(m3);
+  //     FreeMatrix(m2);
+  //     FreeMatrix(m1);
+  //     m1=NULL;
+  //     m2=NULL;
+  //     m3=NULL;
+  //   }
+  // }
+  // return 0;
   // ----------------------------------------------------------
 
   printf("Producing %d %dx%d matrices.\n",LOOPS, ROW, COL);
@@ -92,11 +92,57 @@ int main (int argc, char * argv[])
   int constot = 0;
   int consmul = 0;
 
+  pthread_create(&pr, NULL, prod_worker, NULL);
+  pthread_create(&co, NULL, cons_worker, NULL);
+
+  pthread_join(pr, NULL);
+  pthread_join(co, NULL);
+
   // consume ProdConsStats from producer and consumer threads
   // add up total matrix stats in prs, cos, prodtot, constot, consmul 
 
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
-
   return 0;
 }
+
+//  // initialize counters_t janky way
+//   counters_t * c = (counters_t*) malloc(sizeof(counters_t));
+//   counter_t *count = (counter_t *) malloc (sizeof(counter_t));
+//   init_cnt(count);
+//   c->prod = count;
+
+//   // less janky way
+//   counters_t * c2 = (counters_t*) malloc(sizeof(counters_t));
+//   c2->cons = (counter_t *) malloc (sizeof(counter_t));
+//   c2->prod = (counter_t *) malloc (sizeof(counter_t));
+//   init_cnt(c2->cons);
+//   init_cnt(c2->prod);
+
+//   increment_cnt(c2->cons);
+
+//   printf("***** %d %d *****\n", get_cnt(c2->cons), get_cnt(c2->prod));
+
+
+  // counter_t * count = (counter_t *) malloc(sizeof(counter_t));
+  // init_cnt(count);
+  // increment_cnt(count);
+  // printf("*********%d!!!!!!\n", get_cnt(count));
+
+
+  /** THIS WILL GEN MATRIX AND MULTIPLY **/
+  // Matrix * bigmatrix[MAX];
+  // // *bigmatrix = AllocMatrix(ROW, COL);
+  // *(bigmatrix + 0) = GenMatrixRandom();
+  // *(bigmatrix + 1) = GenMatrixRandom();
+  // // MatrixMultiply(*(bigmatrix + 0), *(bigmatrix + 1));
+  // Matrix * n = MatrixMultiply(*(bigmatrix + 0), *(bigmatrix + 1));
+  // while (n == NULL) {
+  //     *(bigmatrix + 1) = GenMatrixRandom();
+  //     n = MatrixMultiply(*(bigmatrix + 0), *(bigmatrix + 1));
+  // }
+  // DisplayMatrix(*(bigmatrix + 0), stdout);
+  // printf("\n");
+  // DisplayMatrix(*(bigmatrix + 1), stdout);
+  // printf("\n");
+  // DisplayMatrix(n, stdout);
