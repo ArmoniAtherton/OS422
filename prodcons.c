@@ -40,8 +40,10 @@ int put(Matrix * value)
   *(bigmatrix + fill_ptr) = value;
   fill_ptr = (fill_ptr + 1) % MAX;
   count++;
-  printf("PUT, COUNT: %d\n", count);
+  
   produced++;
+  printf("PUT, COUNT: %d, THIS IS PRODUCED: %d\n", count, produced);
+  // printf("THIS IS PRODUCED: %d\n", produced);
   return NULL;
 }
 
@@ -49,9 +51,10 @@ Matrix * get()
 {
   Matrix * tmp = *( bigmatrix + (count -1));
   count--;
-  printf("GET, COUNT: %d\n", count);
-  //  printf("Use Ptr, COUNT: %d\n", use_ptr);
+  //  printf("Use Ptr, COUNT: %d\n, THIS IS CONSUMED: %d", use_ptr);
   consumed++;
+  printf("GET, COUNT: %d, THIS IS CONSUMED: %d\n", count, consumed);
+  // printf("THIS IS CONSUMED: %d\n", consumed);
   return tmp;
 }
 
@@ -83,11 +86,14 @@ void *cons_worker(void *arg)
     while (count == 0) {
         pthread_cond_wait(&fill, &lock); 
     }
+    printf("THIS IS THE LOOP BEFORE ENTERING: %d\n", i);
       //Grab our first matrix
       if (M1 == NULL && M2 == NULL) {
         M1 = get();
         //Check if on last iteration.
         if (count == 0) {
+          // M1 = NULL;
+          FreeMatrix(M1);
           M1 = NULL;
           printf("M1 is now null\n");
         } else {
@@ -96,25 +102,30 @@ void *cons_worker(void *arg)
        
        //This will grab the second matrix.
       } else if(M1 != NULL && M2 == NULL) {
-        // This will check if only one is left in the buffer.
-          // if (count == 0) {
-          //     M1 = NULL;
-          //     printf("Signal to produce more.\n");
-          //     pthread_cond_signal(&empty); 
-          // } else {
               M2 = get();
-              printf("M2 created\n");
-          // }
+              if (count == 0) {
+                // M1 = NULL;
+                FreeMatrix(M2);
+                M2 = NULL;
+                printf("M2 is now null\n");
+                } else {
+                    printf("M2 created\n");
+                }
+              // printf("M2 created\n");
           //This will multiply the matrices
       } else {
           M3 = MatrixMultiply(M1, M2);
           if (M3 == NULL) {
+            FreeMatrix(M2);
             M2 = NULL;
             printf("Multiplication FAILED:\n");
           } else {
+            FreeMatrix(M1);
+            FreeMatrix(M2);
             M1 = NULL;
             M2 = NULL;
             DisplayMatrix(M3, stdout);
+            FreeMatrix(M3);
             M3 = NULL;
           }
       }
