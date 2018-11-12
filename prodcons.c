@@ -83,9 +83,10 @@ void *cons_worker(void *arg)
     while (count == 0) {
         pthread_cond_wait(&fill, &lock); 
     }
-
+      //Grab our first matrix
       if (M1 == NULL && M2 == NULL) {
         M1 = get();
+        //Check if on last iteration.
         if (count == 0) {
           M1 = NULL;
           printf("M1 is now null\n");
@@ -93,6 +94,7 @@ void *cons_worker(void *arg)
             printf("M1 created\n");
         }
        
+       //This will grab the second matrix.
       } else if(M1 != NULL && M2 == NULL) {
         // This will check if only one is left in the buffer.
           // if (count == 0) {
@@ -103,6 +105,7 @@ void *cons_worker(void *arg)
               M2 = get();
               printf("M2 created\n");
           // }
+          //This will multiply the matrices
       } else {
           M3 = MatrixMultiply(M1, M2);
           if (M3 == NULL) {
