@@ -39,6 +39,8 @@
 #include "prodcons.h"
 #include "pcmatrix.h"
 
+// pthread_mutex_t lock1 = PTHREAD_MUTEX_INITIALIZER;
+
 int main (int argc, char * argv[])
 {
   time_t t;
@@ -91,8 +93,8 @@ int main (int argc, char * argv[])
   ProdConsStats * con_count = (ProdConsStats *) malloc(sizeof(ProdConsStats));
   con_count->sumtotal = 0, con_count->multtotal = 0, con_count->matrixtotal = 0;
 
-  pthread_t pr;
-  pthread_t co;
+  pthread_t pr[NUMWORK];
+  pthread_t co[NUMWORK];
 
   // int prs = 0;
   // int cos = 0;
@@ -100,13 +102,16 @@ int main (int argc, char * argv[])
   // int constot = 0;
   // int consmul = 0;
 
-  pthread_create(&pr, NULL, prod_worker, prod_count);
-  pthread_create(&co, NULL, cons_worker, con_count);
+  for (int i = 0; i < NUMWORK; i++) {
+    pthread_create(&pr[i], NULL, prod_worker, prod_count);
+    pthread_create(&co[i], NULL, cons_worker, con_count);
+  }
 
   // Matrix * m1 = Matrix()
-
-  pthread_join(pr,  (void *) &prod_count);
-  pthread_join(co, (void *) &con_count);
+  for (int i = 0; i < NUMWORK; i++) {
+    pthread_join(pr[i],  (void *) &prod_count);
+    pthread_join(co[i], (void *) &con_count);
+  }
 
   int prs = 0;
   int cos = 0;
@@ -121,6 +126,17 @@ int main (int argc, char * argv[])
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
   return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 //  // initialize counters_t janky way
 //   counters_t * c = (counters_t*) malloc(sizeof(counters_t));
