@@ -14,10 +14,10 @@
 #define OUTPUT 0
 
 // Size of the buffer ARRAY  (see ch. 30, section 2, producer/consumer)
-#define MAX 6
+#define MAX 5
 
 // Number of matrices to produce/consume
-#define LOOPS 5
+#define LOOPS 20
 
 
 
