@@ -95,8 +95,6 @@ int main (int argc, char * argv[])
   pthread_create(&pr, NULL, prod_worker, NULL);
   pthread_create(&co, NULL, cons_worker, NULL);
 
-  // Matrix * m1 = Matrix()
-
   pthread_join(pr, NULL);
   pthread_join(co, NULL);
 
