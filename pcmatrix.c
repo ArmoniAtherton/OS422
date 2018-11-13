@@ -40,23 +40,21 @@
 #include "pcmatrix.h"
 
 int main (int argc, char * argv[]) {
-  time_t t;
-  int numw = NUMWORK;
-  // Seed the random number generator with the system time
-  srand((unsigned) time(&t));
+  // not needed I think
+  // time_t t;
+  // int numw = NUMWORK;
+  // // Seed the random number generator with the system time
+  // srand((unsigned) time(&t));
 
-// Data structure to track matrix production / consumption stats
-// sumtotal - total of all elements produced or consumed
-// multtotal - total number of matrices multipled 
-// matrixtotal - total number of matrces produced or consumed
-ProdConsStats * stats_prod = malloc(sizeof(ProdConsStats));
-stats_prod->sumtotal = 0; stats_prod->multtotal = 0; stats_prod->matrixtotal = 0;
+  // Data structure to track matrix production / consumption stats
+  // sumtotal - total of all elements produced or consumed
+  // multtotal - total number of matrices multipled 
+  // matrixtotal - total number of matrces produced or consumed
+  ProdConsStats * stats_prod = malloc(sizeof(ProdConsStats));
+  stats_prod->sumtotal = 0; stats_prod->multtotal = 0; stats_prod->matrixtotal = 0;
 
-ProdConsStats * stats_con = malloc(sizeof(ProdConsStats));
-stats_con->sumtotal = 0; stats_con->multtotal = 0; stats_con->matrixtotal = 0;
-/* ***************** 
-only need one struct for both I think. But would have to modify given struct
-***************** */ 
+  ProdConsStats * stats_con = malloc(sizeof(ProdConsStats));
+  stats_con->sumtotal = 0; stats_con->multtotal = 0; stats_con->matrixtotal = 0;
 
   pthread_t pr[NUMWORK];
   pthread_t co[NUMWORK];
@@ -81,15 +79,13 @@ only need one struct for both I think. But would have to modify given struct
   int constot = stats_con->matrixtotal;
   int consmul = stats_con->multtotal;
 
-  // printf("multiplied %d\n",stats_con->multtotal);
-
   // consume ProdConsStats from producer and consumer threads
   // add up total matrix stats in prs, cos, prodtot, constot, consmul 
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
-  printf("Matrices produced=%d consumed=%d multiplied=%d \n",
-      prodtot,constot,consmul);
+  printf("Matrices produced=%d consumed=%d multiplied=%d \n", 
+        prodtot,constot,consmul);
 
-  // free(&stats_prod);
-  // free(&stats_con);
+  free(stats_prod);
+  free(stats_con);
   return 0;
 }

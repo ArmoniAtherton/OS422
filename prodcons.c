@@ -29,11 +29,9 @@ pthread_mutex_t counter_lock = PTHREAD_MUTEX_INITIALIZER;
 volatile int LOOPS_COUNTER_CON = LOOPS;
 volatile int LOOPS_COUNTER_PROD = LOOPS;
 
-
 //indexers for buffer
 int fill_ptr = 0, use_ptr = 0;
 int buffer_cnt = 0;
-
 
 // Producer consumer data structures
 Matrix * bigmatrix[MAX];
@@ -43,12 +41,12 @@ int put(Matrix * value) {
   bigmatrix[fill_ptr] = value;
   fill_ptr = (fill_ptr + 1) % MAX;
   buffer_cnt++;
-  return 0;                     // what to return here??
+  return 0;                     // what to return here???
 }
 
 Matrix * get()  {
   Matrix * temp = bigmatrix[use_ptr];
-  use_ptr = (use_ptr + 1) % MAX;  // should be = ?????
+  use_ptr = (use_ptr + 1) % MAX;  
   buffer_cnt--;
   return temp;
 }
@@ -57,13 +55,12 @@ Matrix * get()  {
 void *prod_worker(void *arg) { 
   ProdConsStats *stats = (ProdConsStats *) arg;
   Matrix *temp;
-  // printf("--  IN PRODUCER WORKER --\n"); 
+
   while (LOOPS_COUNTER_PROD > 0) {
     pthread_mutex_lock(&lock);
 
     // sleep if buffer is full
     while(buffer_cnt == MAX) {
-      // printf("--  IN PRODUCER WHILE LOOP --\n"); 
       pthread_cond_wait(&empty, &lock); 
     }
 
@@ -89,7 +86,7 @@ void *prod_worker(void *arg) {
 void *cons_worker(void *arg) {
   ProdConsStats *stats = (ProdConsStats *) arg;
   Matrix *m1 = 0, *m2 = 0, *m3 = 0;
-  // printf("--  IN CONSUMER WORKER --\n");
+
   while (LOOPS_COUNTER_CON > 0) {
     pthread_mutex_lock(&lock);
     // printf("buff_cnt: %d\n", buffer_cnt);
@@ -123,9 +120,9 @@ void *cons_worker(void *arg) {
       pthread_mutex_unlock(&counter_lock);
 
     } 
-    if (m1 != 0 && m2 != 0) {
+    if (m1 != 0 && m2 != 0) { // try to multiply matricies
       m3 = MatrixMultiply(m1, m2);
-      if (m3 != 0) { // could multiply matricies
+      if (m3 != 0) { // multiplied matricies
         DisplayMatrix(m3, stdout);
         stats->multtotal += 1;
         FreeMatrix(m1); FreeMatrix(m3); 
