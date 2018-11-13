@@ -83,22 +83,36 @@ int main (int argc, char * argv[])
   printf("With %d producer and consumer thread(s).\n",numw);
   printf("\n");
 
+  //Intializes the struct to hold producer counts.
+  ProdConsStats * prod_count = (ProdConsStats *) malloc(sizeof(ProdConsStats));
+  prod_count->sumtotal = 0, prod_count->multtotal = 0, prod_count->matrixtotal = 0;
+
+  //Intializes the struct to hold consumer counts.
+  ProdConsStats * con_count = (ProdConsStats *) malloc(sizeof(ProdConsStats));
+  con_count->sumtotal = 0, con_count->multtotal = 0, con_count->matrixtotal = 0;
+
   pthread_t pr;
   pthread_t co;
 
-  int prs = 0;
-  int cos = 0;
-  int prodtot = 0;
-  int constot = 0;
-  int consmul = 0;
+  // int prs = 0;
+  // int cos = 0;
+  // int prodtot = 0;
+  // int constot = 0;
+  // int consmul = 0;
 
-  pthread_create(&pr, NULL, prod_worker, NULL);
-  pthread_create(&co, NULL, cons_worker, NULL);
+  pthread_create(&pr, NULL, prod_worker, prod_count);
+  pthread_create(&co, NULL, cons_worker, con_count);
 
   // Matrix * m1 = Matrix()
 
-  pthread_join(pr, NULL);
-  pthread_join(co, NULL);
+  pthread_join(pr,  (void *) &prod_count);
+  pthread_join(co, (void *) &con_count);
+
+  int prs = 0;
+  int cos = 0;
+  int prodtot = prod_count->matrixtotal;
+  int constot = con_count->matrixtotal;
+  int consmul = con_count->multtotal;
 
   // consume ProdConsStats from producer and consumer threads
   // add up total matrix stats in prs, cos, prodtot, constot, consmul 

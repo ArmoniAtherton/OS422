@@ -21,7 +21,7 @@
 
 //Test Will This be thread safe???? //THINK IT WILL
 int fill_ptr = 0;
-int use_ptr =  1 - MAX;
+// int use_ptr =  1 - MAX;
 int count = 0;
 int produced = 0;
 int consumed = 0;
@@ -49,9 +49,8 @@ int put(Matrix * value)
 
 Matrix * get() 
 {
-  Matrix * tmp = *( bigmatrix + (count -1));
+  Matrix * tmp = *( bigmatrix + (count - 1));
   count--;
-  //  printf("Use Ptr, COUNT: %d\n, THIS IS CONSUMED: %d", use_ptr);
   consumed++;
   printf("GET, COUNT: %d, THIS IS CONSUMED: %d\n", count, consumed);
   // printf("THIS IS CONSUMED: %d\n", consumed);
@@ -60,6 +59,7 @@ Matrix * get()
 
 void *prod_worker(void *arg)
 {
+  ProdConsStats * prod_count = (ProdConsStats*) arg;
   int i = 0;
   for (i = 0; i < LOOPS; i++) {
     pthread_mutex_lock(&lock);
@@ -67,16 +67,18 @@ void *prod_worker(void *arg)
         pthread_cond_wait(&empty, &lock); 
     }
     put(GenMatrixRandom());
+    prod_count->matrixtotal++;
     pthread_cond_signal(&fill); 
     pthread_mutex_unlock(&lock);
-
     }
-    return NULL;
+    // printf("PRODUCED: %d\n", produced);
+    return prod_count;
 }
 
 // Matrix CONSUMER worker thread
 void *cons_worker(void *arg)
 {
+  ProdConsStats * con_count = (ProdConsStats*) arg;
   int i = 0;
   Matrix * M1 = NULL;
   Matrix * M2 = NULL;
@@ -86,85 +88,159 @@ void *cons_worker(void *arg)
     while (count == 0) {
         pthread_cond_wait(&fill, &lock); 
     }
-    printf("THIS IS THE LOOP BEFORE ENTERING: %d\n", i);
-      //Grab our first matrix
       if (M1 == NULL && M2 == NULL) {
-        M1 = get();
-        //Check if on last iteration.
-        if (count == 0) {
-          // M1 = NULL;
+       M1 = get();
+       con_count->matrixtotal++;
+       //Check if on last iteration.
+       if (count == 0) {
+         FreeMatrix(M1);
+         M1 = NULL;
+         printf("M1 is now null\n");
+       } else {
+           printf("M1 created\n");
+       }
+
+      //This will grab the second matrix.
+     } else if(M1 != NULL && M2 == NULL) {
+         M2 = get();
+         con_count->matrixtotal++;
+         printf("M2 created\n");
+     
+         M3 = MatrixMultiply(M1, M2);
+         if (M3 != NULL) {
+            con_count->multtotal++;
+            DisplayMatrix(M3, stdout);
+            FreeMatrix(M1);
+            FreeMatrix(M3);
+            M1 = NULL;
+            M3 = NULL;
+           }
+            FreeMatrix(M2);
+            M2 = NULL;
+           }
+      
+      if (count == 0 && M1 != NULL) {
+          printf("M1 deleted.\n");
           FreeMatrix(M1);
           M1 = NULL;
-          printf("M1 is now null\n");
-        } else {
-            printf("M1 created\n");
-        }
-       
-       //This will grab the second matrix.
-      } else if(M1 != NULL && M2 == NULL) {
-              M2 = get();
-              if (count == 0) {
-                // M1 = NULL;
-                FreeMatrix(M2);
-                M2 = NULL;
-                printf("M2 is now null\n");
-                } else {
-                    printf("M2 created\n");
-                }
-              // printf("M2 created\n");
-          //This will multiply the matrices
-      } else {
-          M3 = MatrixMultiply(M1, M2);
-          if (M3 == NULL) {
-            FreeMatrix(M2);
-            M2 = NULL;
-            printf("Multiplication FAILED:\n");
-          } else {
-            FreeMatrix(M1);
-            FreeMatrix(M2);
-            M1 = NULL;
-            M2 = NULL;
-            DisplayMatrix(M3, stdout);
-            FreeMatrix(M3);
-            M3 = NULL;
-          }
       }
-    // Matrix * tmp1 = get();
-
-    
-    // printf("THIS is Produced: %d, Consumed: %d, %d\n", produced, consumed, (produced - consumed)); 
-    // printf("SIGNAL TO PRODUCE: \n");
-    pthread_cond_signal(&empty); 
+      if (count == 0) {
+           pthread_cond_signal(&empty);
+      }
     pthread_mutex_unlock(&lock); 
-
-    //Print the matrix.
-    // DisplayMatrix(tmp1, stdout);
-    // FreeMatrix(tmp1);
     printf("\n");
+    
   }
-  return NULL; 
+  return con_count; 
 }
 
-//  Matrix * tmp1 = get();
-//     //If there is only one matrix in buffer and We have produced all matricies possible.
-//     if (count == 0 && produced == MAX) {
-//       FreeMatrix(tmp1);
-
-//     }  //Will check if we can keep producing more matricies but one one matrix in buffer.
-//     else if (count == 0 && produced != MAX) {
-
-//     }  //Matricies are in the buffer and we keep grabing and multiplying.
-//     else {
-        
-//     }
-// Matrix * tmp2 = get();
-    // Matrix * tmp3 = MatrixMultiply(tmp1, tmp2);
-    //This will check if they multiplied correctly.
-    // while(tmp3 == NULL) {
-    //   FreeMatrix(tmp2);
-    //   FreeMatrix(tmp3);
-    //   tmp2 = get();
-    //   tmp3 = MatrixMultiply(tmp1, tmp2);
-    //   printf("IN THE LOOP\n");
-    // }
+//  // printf("THIS IS THE LOOP BEFORE ENTERING: %d\n", i);
+//       //Grab our first matrix
+//       if (M1 == NULL && M2 == NULL) {
+//         M1 = get();
+//         con_count->matrixtotal++;
+//         //Check if on last iteration.
+//         if (count == 0) {
+//           FreeMatrix(M1);
+//           M1 = NULL;
+//           printf("M1 is now null\n");
+//         } else {
+//             printf("M1 created\n");
+//         }
+       
+//        //This will grab the second matrix.
+//       } else if(M1 != NULL && M2 == NULL) {
+//           M2 = get();
+//           con_count->matrixtotal++;
+//           // if (count == 0) {
+//           //   FreeMatrix(M1);
+//           //   FreeMatrix(M2);
+//           //   M1 = NULL;
+//           //   M2 = NULL;
+//           //   printf("M1/M2 is now null\n");
+//           //   } else {
+//                 printf("M2 created\n"); 
+//                  printf("1.) M1: %d, M2: %d\n",M1, M2);
+//                 M3 = MatrixMultiply(M1, M2);
+//                 printf("2.) M1: %d, M2: %d\n",M1, M2);
+//                 if (M3 == NULL) {
+//                   printf("M2: %d\n", M2);
+//                   FreeMatrix(M2);
+//                   M2 = NULL;
+//                   // printf("********%d\n", M2);
+//                   printf("Multiplication FAILED:\n");
+//                 } else {
+//                     printf("PRINTED CORRECTLY: M1- %d, M2- %d,  M3- %d", M1, M2, M3);
+//                     con_count->multtotal++;
+//                     FreeMatrix(M1);
+//                     FreeMatrix(M2);
+//                     M1 = NULL;
+//                     M2 = NULL;
+//                     DisplayMatrix(M3, stdout);
+//                     FreeMatrix(M3);
+//                     M3 = NULL;
+//                 }
+//             // }
+//       } 
   
+//     // printf("SIGNAL TO PRODUCE: \n");
+//     pthread_cond_signal(&empty); 
+//     pthread_mutex_unlock(&lock); 
+
+//     //Print the matrix.
+//     // DisplayMatrix(tmp1, stdout);
+//     // FreeMatrix(tmp1);
+//     printf("\n");
+//   }
+//   printf("CONSUMED: %d, PRODUCED: %d\n", consumed, produced);
+//   return con_count; 
+  
+
+
+    // //This will grab the first matrix.
+    //   if (M1 == NULL && M2 == NULL) {
+    //     M1 = get();
+    //     con_count->matrixtotal++;
+    //     printf("M1 created\n");
+    //     if (count == 0) {
+    //           printf("M1 Free.\n");
+    //           FreeMatrix(M1);
+    //           M1 = NULL;
+    //         }
+
+    //   //This will grab the second matrix.
+    //  } else if(M1 != NULL && M2 == NULL) {
+    //      M2 = get();
+    //      con_count->matrixtotal++;
+    //      printf("M2 created\n");
+    //      M3 = MatrixMultiply(M1, M2);
+    //      //Check if the multiplication was sucessfull.
+    //      if (M3 != NULL) {
+    //         con_count->multtotal++;
+    //         DisplayMatrix(M3, stdout);
+    //         FreeMatrix(M1);
+    //         FreeMatrix(M2);
+    //         FreeMatrix(M3);
+    //         M1 = NULL;
+    //         M2 = NULL;
+    //         M3 = NULL;
+    //          printf("M1 And M2 And M3 Free: \n");
+    //          //Multiplication Failed Free M2.
+    //        } else { 
+    //           FreeMatrix(M2);
+    //           M2 = NULL;
+    //           printf("M2 Free: \n");
+    //           //This will check if we are on last iteration and should delete m1 too.
+    //           if (count == 0) {
+    //             printf("M1 Free.\n");
+    //             FreeMatrix(M1);
+    //             M1 = NULL;
+    //           }
+    //         }
+            
+    //     }
+      
+    //   //Should only signal if count is zero. If check not here signal early.
+    //   if (count == 0) {
+    //        pthread_cond_signal(&empty);
+    //   }
