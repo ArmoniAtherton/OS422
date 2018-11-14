@@ -8,7 +8,7 @@
  */
 
 // Number of worker threads - NUMWORK producers, NUMWORK consumers
-#define NUMWORK 1
+#define NUMWORK 4
 
 // Constant for enabling and disabling DEBUG output
 #define OUTPUT 0
@@ -17,7 +17,7 @@
 #define MAX 5
 
 // Number of matrices to produce/consume
-#define LOOPS 5000
+#define LOOPS 200
 
 
 

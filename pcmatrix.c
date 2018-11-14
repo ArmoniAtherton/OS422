@@ -110,7 +110,7 @@ int main (int argc, char * argv[])
   // Matrix * m1 = Matrix()
   for (int i = 0; i < NUMWORK; i++) {
     pthread_join(pr[i],  (void *) &prod_count);
-    pthread_join(co[i], (void *) &con_count);
+    pthread_join(co[i], (void *) &con_count);  
   }
 
   int prs = 0;
@@ -124,7 +124,7 @@ int main (int argc, char * argv[])
 
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
-  return 0;
+  return 0; 
 }
 
 
