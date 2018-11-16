@@ -29,6 +29,7 @@ int consumed = 0;
 //Both threads will share for loop counter.
 volatile int pcnt = 0;
 volatile int ccnt = 0;
+volatile int prgFinished = 0;
 
 // Define Locks and Condition variables here 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -62,6 +63,7 @@ Matrix * get()
   consumed++;
   printf("GET, COUNT: %d, THIS IS CONSUMED: %d\n", count, consumed);
   // printf("THIS IS CONSUMED: %d\n", consumed);
+  // DisplayMatrix(tmp, stdout);
   return tmp;
 }
 
@@ -70,23 +72,31 @@ void *prod_worker(void *arg)
   ProdConsStats * prod_count = (ProdConsStats*) arg;
   // int i = 0;
   for (; pcnt < LOOPS; pcnt++) {
+    // if (flag == 1) {
+    //   printf("Exit the thread!\n");
+    //   pthread_exit(0);
+    // }
     
-    printf("THIS IS PCNT: %d\n", pcnt);
+    // printf("THIS IS PCNT: %d\n", pcnt);
     pthread_mutex_lock(&lock);
-    while (count == MAX) {
+    while (count == MAX && prgFinished == 0) {
+        // printf("producer put to SLEEP\n");
         pthread_cond_wait(&empty, &lock); 
     }
-    put(GenMatrixRandom());
-    if (pcnt < LOOPS) {
-    // pthread_mutex_lock(&c_lock);
-    prod_count->matrixtotal++;
-    // pthread_mutex_unlock(&c_lock);
+    if (prod_count->matrixtotal == LOOPS) {
+      printf("PPP- Should be done!!!!!!\n");
+      // flag1 = 1;
+      pthread_cond_broadcast(&fill);
+    } else {
+        put(GenMatrixRandom());
+        prod_count->matrixtotal++;
+        pthread_cond_signal(&fill); 
     }
-    pthread_cond_signal(&fill); 
+    // put(GenMatrixRandom());
+    // prod_count->matrixtotal++;
+    // pthread_cond_signal(&fill); 
     pthread_mutex_unlock(&lock); 
-    
   }
-    // printf("PRODUCED: %d\n", produced);
     return prod_count;
 }
 
@@ -94,24 +104,28 @@ void *prod_worker(void *arg)
 void *cons_worker(void *arg)
 {
   ProdConsStats * con_count = (ProdConsStats*) arg;
-  // int i = 0;
+
   Matrix * M1 = NULL;
   Matrix * M2 = NULL;
   Matrix * M3 = NULL;
   for (; ccnt < LOOPS; ccnt++) {
-    printf("THIS IS CCNT: %d\n", ccnt);
+    // printf("THIS IS CCNT: %d\n", ccnt);
     pthread_mutex_lock(&lock);
-    while (count == 0) {
+    while (count == 0 && prgFinished == 0) {
+        // printf("Consumer put to SLEEP\n");
         pthread_cond_wait(&fill, &lock); 
     }
+
+    // if (cons_count->matrixtotal == LOOPS) {
+    //   printf("PPP- Should be done!!!!!!\n");
+    //   flag1 = 1;
+    //   // pthread_cond_broadcast(&fill);
+    // }
+    
      //This will grab the first matrix.
-      if (M1 == NULL && M2 == NULL) {
+      if (M1 == NULL && M2 == NULL && prgFinished != 1) {
         M1 = get();
-        if (ccnt < LOOPS) {
-        // pthread_mutex_lock(&c_lock);
         con_count->matrixtotal++;
-        // pthread_mutex_unlock(&c_lock);
-        }
         printf("M1 created\n");
         if (count == 0) {
               printf("M1 Free.\n");
@@ -119,21 +133,15 @@ void *cons_worker(void *arg)
               M1 = NULL;
             }
       //This will grab the second matrix.
-     } else if(M1 != NULL && M2 == NULL) {
+     } else if(M1 != NULL && M2 == NULL && prgFinished != 1) {
          M2 = get();
-        if (ccnt < LOOPS) {
-        //  pthread_mutex_lock(&c_lock);
          con_count->matrixtotal++;
-        //  pthread_mutex_unlock(&c_lock);
-        }
          printf("M2 created\n");
          M3 = MatrixMultiply(M1, M2);
          //Check if the multiplication was sucessfull.
          if (M3 != NULL) {
             if (ccnt < LOOPS) {
-            // pthread_mutex_lock(&c_lock);
             con_count->multtotal++;
-            // pthread_mutex_unlock(&c_lock);
             }
             DisplayMatrix(M3, stdout);
             FreeMatrix(M1);
@@ -156,8 +164,14 @@ void *cons_worker(void *arg)
               } 
             }
         }
-      
-    pthread_cond_signal(&empty);
+    if (con_count->matrixtotal == LOOPS) {
+      printf("CCC-Should be done!!!!!!\n");
+      prgFinished = 1;
+      pthread_cond_broadcast(&empty);
+    } else {
+       pthread_cond_signal(&empty);
+    }
+    // pthread_cond_signal(&empty);
     pthread_mutex_unlock(&lock); 
     printf("\n");
   }
