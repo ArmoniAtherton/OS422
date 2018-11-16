@@ -96,12 +96,6 @@ int main (int argc, char * argv[])
   pthread_t pr[NUMWORK];
   pthread_t co[NUMWORK];
 
-  // int prs = 0;
-  // int cos = 0;
-  // int prodtot = 0;
-  // int constot = 0;
-  // int consmul = 0;
-
   for (int i = 0; i < NUMWORK; i++) {
     pthread_create(&pr[i], NULL, prod_worker, prod_count);
     pthread_create(&co[i], NULL, cons_worker, con_count);
@@ -113,8 +107,8 @@ int main (int argc, char * argv[])
     pthread_join(co[i], (void *) &con_count);  
   }
 
-  int prs = 0;
-  int cos = 0;
+  int prs = prod_count->sumtotal;
+  int cos = con_count->sumtotal;
   int prodtot = prod_count->matrixtotal;
   int constot = con_count->matrixtotal;
   int consmul = con_count->multtotal;

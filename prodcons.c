@@ -33,7 +33,6 @@ volatile int prgFinished = 0;
 
 // Define Locks and Condition variables here 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t c_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER, fill = PTHREAD_COND_INITIALIZER;
 
 // Producer consumer data structures
@@ -41,8 +40,7 @@ Matrix * bigmatrix[MAX];
 
 
 // Bounded buffer put() get()
-int put(Matrix * value)
-{
+int put(Matrix * value) {
     // pthread_mutex_unlock(&c_lock);
   *(bigmatrix + fill_ptr) = value;
   fill_ptr = (fill_ptr + 1) % MAX;
@@ -54,8 +52,7 @@ int put(Matrix * value)
   return NULL;
 }
 
-Matrix * get() 
-{
+Matrix * get() {
   // Matrix * tmp = *( bigmatrix + (count - 1));
   Matrix * tmp = *( bigmatrix + use_ptr);
   use_ptr = (use_ptr + 1) % MAX;  
@@ -67,16 +64,9 @@ Matrix * get()
   return tmp;
 }
 
-void *prod_worker(void *arg)
-{
+void *prod_worker(void *arg) {
   ProdConsStats * prod_count = (ProdConsStats*) arg;
-  // int i = 0;
   for (; pcnt < LOOPS; pcnt++) {
-    // if (flag == 1) {
-    //   printf("Exit the thread!\n");
-    //   pthread_exit(0);
-    // }
-    
     // printf("THIS IS PCNT: %d\n", pcnt);
     pthread_mutex_lock(&lock);
     while (count == MAX && prgFinished == 0) {
@@ -85,26 +75,23 @@ void *prod_worker(void *arg)
     }
     if (prod_count->matrixtotal == LOOPS) {
       printf("PPP- Should be done!!!!!!\n");
-      // flag1 = 1;
       pthread_cond_broadcast(&fill);
     } else {
-        put(GenMatrixRandom());
+        Matrix * M1 = GenMatrixRandom();
+        put(M1);
         prod_count->matrixtotal++;
+        prod_count->sumtotal = SumMatrix(M1);
         pthread_cond_signal(&fill); 
     }
-    // put(GenMatrixRandom());
-    // prod_count->matrixtotal++;
-    // pthread_cond_signal(&fill); 
     pthread_mutex_unlock(&lock); 
   }
     return prod_count;
 }
 
 // Matrix CONSUMER worker thread
-void *cons_worker(void *arg)
-{
-  ProdConsStats * con_count = (ProdConsStats*) arg;
+void *cons_worker(void *arg) {
 
+  ProdConsStats * con_count = (ProdConsStats*) arg;
   Matrix * M1 = NULL;
   Matrix * M2 = NULL;
   Matrix * M3 = NULL;
@@ -115,17 +102,12 @@ void *cons_worker(void *arg)
         // printf("Consumer put to SLEEP\n");
         pthread_cond_wait(&fill, &lock); 
     }
-
-    // if (cons_count->matrixtotal == LOOPS) {
-    //   printf("PPP- Should be done!!!!!!\n");
-    //   flag1 = 1;
-    //   // pthread_cond_broadcast(&fill);
-    // }
     
      //This will grab the first matrix.
       if (M1 == NULL && M2 == NULL && prgFinished != 1) {
         M1 = get();
         con_count->matrixtotal++;
+        con_count->sumtotal = SumMatrix(M1);
         printf("M1 created\n");
         if (count == 0) {
               printf("M1 Free.\n");
@@ -136,6 +118,7 @@ void *cons_worker(void *arg)
      } else if(M1 != NULL && M2 == NULL && prgFinished != 1) {
          M2 = get();
          con_count->matrixtotal++;
+         con_count->sumtotal = SumMatrix(M2);
          printf("M2 created\n");
          M3 = MatrixMultiply(M1, M2);
          //Check if the multiplication was sucessfull.
