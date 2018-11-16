@@ -39,7 +39,6 @@
 #include "prodcons.h"
 #include "pcmatrix.h"
 
-// pthread_mutex_t lock1 = PTHREAD_MUTEX_INITIALIZER;
 
 int main (int argc, char * argv[])
 {
@@ -48,37 +47,6 @@ int main (int argc, char * argv[])
 
   // Seed the random number generator with the system time
   srand((unsigned) time(&t));
-
-  //
-  // Demonstration code to show the use of matrix routines
-  //
-  // DELETE THIS CODE ON ASSIGNMENT 2 SUBMISSION
-  // ----------------------------------------------------------
-  // printf("MATRIX MULTIPLICATION DEMO:\n\n");
-  // Matrix *m1, *m2, *m3;
-  // for (int i=0;i<12;i++)
-  // {
-  //   m1 = GenMatrixRandom();
-  //   m2 = GenMatrixRandom();
-  //   m3 = MatrixMultiply(m1, m2);
-  //   if (m3 != NULL)
-  //   {
-  //     DisplayMatrix(m1,stdout);
-  //     printf("    X\n");
-  //     DisplayMatrix(m2,stdout);
-  //     printf("    =\n");
-  //     DisplayMatrix(m3,stdout);
-  //     printf("\n");
-  //     FreeMatrix(m3);
-  //     FreeMatrix(m2);
-  //     FreeMatrix(m1);
-  //     m1=NULL;
-  //     m2=NULL;
-  //     m3=NULL;
-  //   }
-  // }
-  // return 0;
-  // ----------------------------------------------------------
 
   printf("Producing %d %dx%d matrices.\n",LOOPS, ROW, COL);
   printf("Using a shared buffer of size=%d\n", MAX);
@@ -96,12 +64,13 @@ int main (int argc, char * argv[])
   pthread_t pr[NUMWORK];
   pthread_t co[NUMWORK];
 
+  //This will intialize a specified number of threads.
   for (int i = 0; i < NUMWORK; i++) {
     pthread_create(&pr[i], NULL, prod_worker, prod_count);
     pthread_create(&co[i], NULL, cons_worker, con_count);
   }
 
-  // Matrix * m1 = Matrix()
+  //This will join a specified number of threads.
   for (int i = 0; i < NUMWORK; i++) {
     pthread_join(pr[i],  (void *) &prod_count);
     pthread_join(co[i], (void *) &con_count);  
@@ -113,11 +82,12 @@ int main (int argc, char * argv[])
   int constot = con_count->matrixtotal;
   int consmul = con_count->multtotal;
 
-  // consume ProdConsStats from producer and consumer threads
-  // add up total matrix stats in prs, cos, prodtot, constot, consmul 
-
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
+
+  free(prod_count);
+  free(con_count);
+  
   return 0; 
 }
 

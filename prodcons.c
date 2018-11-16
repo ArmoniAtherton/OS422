@@ -19,10 +19,11 @@
 #include "pcmatrix.h"
 #include "prodcons.h"
 
-//Test Will This be thread safe???? //THINK IT WILL
+//Will be the indexing for the buffer.
 int fill_ptr = 0;
 int use_ptr =  0;
 int count = 0;
+//!!!!!Wont need these once done testing!!!!.
 int produced = 0;
 int consumed = 0;
 
@@ -38,17 +39,14 @@ pthread_cond_t empty = PTHREAD_COND_INITIALIZER, fill = PTHREAD_COND_INITIALIZER
 // Producer consumer data structures
 Matrix * bigmatrix[MAX];
 
-
 // Bounded buffer put() get()
 int put(Matrix * value) {
     // pthread_mutex_unlock(&c_lock);
   *(bigmatrix + fill_ptr) = value;
   fill_ptr = (fill_ptr + 1) % MAX;
   count++;
-  
   produced++;
   printf("PUT, COUNT: %d, THIS IS PRODUCED: %d\n", count, produced);
-  // printf("THIS IS PRODUCED: %d\n", produced);
   return NULL;
 }
 
@@ -59,13 +57,13 @@ Matrix * get() {
   count--;
   consumed++;
   printf("GET, COUNT: %d, THIS IS CONSUMED: %d\n", count, consumed);
-  // printf("THIS IS CONSUMED: %d\n", consumed);
-  // DisplayMatrix(tmp, stdout);
   return tmp;
 }
 
 void *prod_worker(void *arg) {
+
   ProdConsStats * prod_count = (ProdConsStats*) arg;
+  //pcnt is a a global variable.
   for (; pcnt < LOOPS; pcnt++) {
     // printf("THIS IS PCNT: %d\n", pcnt);
     pthread_mutex_lock(&lock);
@@ -80,7 +78,7 @@ void *prod_worker(void *arg) {
         Matrix * M1 = GenMatrixRandom();
         put(M1);
         prod_count->matrixtotal++;
-        prod_count->sumtotal = SumMatrix(M1);
+        prod_count->sumtotal += SumMatrix(M1);
         pthread_cond_signal(&fill); 
     }
     pthread_mutex_unlock(&lock); 
@@ -95,6 +93,8 @@ void *cons_worker(void *arg) {
   Matrix * M1 = NULL;
   Matrix * M2 = NULL;
   Matrix * M3 = NULL;
+
+  //ccnt is a a global variable.
   for (; ccnt < LOOPS; ccnt++) {
     // printf("THIS IS CCNT: %d\n", ccnt);
     pthread_mutex_lock(&lock);
@@ -102,12 +102,12 @@ void *cons_worker(void *arg) {
         // printf("Consumer put to SLEEP\n");
         pthread_cond_wait(&fill, &lock); 
     }
-    
-     //This will grab the first matrix.
+      //This will grab the first matrix and check if 
+      //prg is finished/terminate leftover threads.
       if (M1 == NULL && M2 == NULL && prgFinished != 1) {
         M1 = get();
         con_count->matrixtotal++;
-        con_count->sumtotal = SumMatrix(M1);
+        con_count->sumtotal += SumMatrix(M1);
         printf("M1 created\n");
         if (count == 0) {
               printf("M1 Free.\n");
@@ -118,14 +118,12 @@ void *cons_worker(void *arg) {
      } else if(M1 != NULL && M2 == NULL && prgFinished != 1) {
          M2 = get();
          con_count->matrixtotal++;
-         con_count->sumtotal = SumMatrix(M2);
+         con_count->sumtotal += SumMatrix(M2);
          printf("M2 created\n");
          M3 = MatrixMultiply(M1, M2);
          //Check if the multiplication was sucessfull.
          if (M3 != NULL) {
-            if (ccnt < LOOPS) {
             con_count->multtotal++;
-            }
             DisplayMatrix(M3, stdout);
             FreeMatrix(M1);
             FreeMatrix(M2);
@@ -133,8 +131,8 @@ void *cons_worker(void *arg) {
             M1 = NULL;
             M2 = NULL;
             M3 = NULL;
-             printf("M1 And M2 And M3 Free: \n");
-             //Multiplication Failed Free M2.
+            printf("M1 And M2 And M3 Free: \n");
+            //Multiplication Failed Free M2.
            } else { 
               FreeMatrix(M2);
               M2 = NULL;
@@ -147,6 +145,7 @@ void *cons_worker(void *arg) {
               } 
             }
         }
+    //Used if program is over and remaining threads should terminate.
     if (con_count->matrixtotal == LOOPS) {
       printf("CCC-Should be done!!!!!!\n");
       prgFinished = 1;
@@ -154,7 +153,6 @@ void *cons_worker(void *arg) {
     } else {
        pthread_cond_signal(&empty);
     }
-    // pthread_cond_signal(&empty);
     pthread_mutex_unlock(&lock); 
     printf("\n");
   }
