@@ -32,6 +32,11 @@ volatile int pcnt = 0;
 volatile int ccnt = 0;
 volatile int prgFinished = 0;
 
+//This will make sure each thread shares the same matrices for multiplying.
+Matrix * M1 = NULL;
+Matrix * M2 = NULL;
+Matrix * M3 = NULL;
+
 // Define Locks and Condition variables here 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER, fill = PTHREAD_COND_INITIALIZER;
@@ -90,10 +95,6 @@ void *prod_worker(void *arg) {
 void *cons_worker(void *arg) {
 
   ProdConsStats * con_count = (ProdConsStats*) arg;
-  Matrix * M1 = NULL;
-  Matrix * M2 = NULL;
-  Matrix * M3 = NULL;
-
   //ccnt is a a global variable.
   for (; ccnt < LOOPS; ccnt++) {
     // printf("THIS IS CCNT: %d\n", ccnt);
