@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "counter.h"
 #include "matrix.h"
 #include "pcmatrix.h"
@@ -23,6 +24,7 @@
 int fill_ptr = 0;
 int use_ptr =  0;
 int count = 0;
+
 //!!!!!Wont need these once done testing!!!!.
 int produced = 0;
 int consumed = 0;
@@ -110,11 +112,12 @@ void *cons_worker(void *arg) {
         con_count->matrixtotal++;
         con_count->sumtotal += SumMatrix(M1);
         // printf("M1 created\n");
-        if (count == 0) {
-              // printf("M1 Free.\n");
-              FreeMatrix(M1);
-              M1 = NULL;
-            } 
+        // if (count == 0) {
+        //       // printf("M1 Free.\n");
+        //       // FreeMatrix(M1);
+        //       // M1 = NULL;
+        //       sleep(.1);
+        //     } 
       //This will grab the second matrix.
      } else if(M1 != NULL && M2 == NULL && prgFinished != 1) {
          M2 = get();
@@ -137,23 +140,29 @@ void *cons_worker(void *arg) {
             M1 = NULL;
             M2 = NULL;
             M3 = NULL;
-            printf("M1 And M2 And M3 Free: \n");
+            // printf("M1 And M2 And M3 Free: \n");
             //Multiplication Failed Free M2.
            } else { 
               FreeMatrix(M2);
               M2 = NULL;
-              // printf("M2 Free: \n");
+              printf("M2 Free: \n");
               //This will check if we are on last iteration and should delete m1 too.
               if (count == 0) {
+                sleep(.1);
                 // printf("M1 Free.\n");
-                FreeMatrix(M1);
-                M1 = NULL;
+                // FreeMatrix(M1);
+                // M1 = NULL;
               } 
             }
         }
     //Used if program is over and remaining threads should terminate.
     if (con_count->matrixtotal == LOOPS) {
-      // printf("CCC-Should be done!!!!!!\n");
+      if (M1 != NULL) {
+        // printf("M1 Free.\n");
+        FreeMatrix(M1);
+        M1 = NULL;
+      }
+      // printf("CCC-Should be done!!!!!! %d, %d\n",con_count->matrixtotal, LOOPS );
       prgFinished = 1;
       pthread_cond_broadcast(&empty);
     } else {
