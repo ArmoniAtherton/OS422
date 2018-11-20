@@ -54,7 +54,7 @@ int put(Matrix * value) {
   count++;
   produced++;
   // printf("PUT, COUNT: %d, THIS IS PRODUCED: %d\n", count, produced);
-  return NULL;
+  return 0;
 }
 
 Matrix * get() {
@@ -148,7 +148,7 @@ void *cons_worker(void *arg) {
               printf("M2 Free: \n");
               //This will check if we are on last iteration and should delete m1 too.
               if (count == 0) {
-                sleep(.1);
+                sleep((unsigned int ).1);
                 // printf("M1 Free.\n");
                 // FreeMatrix(M1);
                 // M1 = NULL;
