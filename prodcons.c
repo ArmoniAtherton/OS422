@@ -145,7 +145,7 @@ void *cons_worker(void *arg) {
            } else { 
               FreeMatrix(M2);
               M2 = NULL;
-              printf("M2 Free: \n");
+              // printf("M2 Free: \n");
               //This will check if we are on last iteration and should delete m1 too.
               if (count == 0) {
                 sleep((unsigned int ).1);

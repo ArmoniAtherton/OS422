@@ -78,7 +78,7 @@ Matrix * GenMatrixRandom()
 {
   int row = 1 + rand() % 4;
   int col = 1 + rand() % 4;
-  Matrix * mat = AllocMatrix(1, 1);
+  Matrix * mat = AllocMatrix(row, col);
   GenMatrix(mat);
   return mat; 
 }
