@@ -160,7 +160,7 @@ void *cons_worker(void *arg) {
       if (M1 != NULL) {
         // printf("M1 Free.\n");
         FreeMatrix(M1);
-        M1 = NULL;
+        M1 = NULL; 
       }
       // printf("CCC-Should be done!!!!!! %d, %d\n",con_count->matrixtotal, LOOPS );
       prgFinished = 1;
@@ -171,5 +171,5 @@ void *cons_worker(void *arg) {
     pthread_mutex_unlock(&lock); 
     // printf("\n");
   }
-  return con_count; 
+  return con_count;       
 }
